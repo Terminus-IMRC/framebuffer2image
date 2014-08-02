@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <linux/fb.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #define FRAMEBUFFER_FILENAME "/dev/fb0"
 
@@ -30,6 +31,11 @@ int main()
 	print_sc(sc);
 	if(sc.nonstd){
 		fprintf(stderr, "error: %s has non-standard pixel format\n", FRAMEBUFFER_FILENAME);
+		exit(EXIT_FAILURE);
+	}
+
+	if(close(d)==-1){
+		perror("close");
 		exit(EXIT_FAILURE);
 	}
 
