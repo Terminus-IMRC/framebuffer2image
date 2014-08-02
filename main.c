@@ -27,15 +27,15 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
+	if(close(d)==-1){
+		perror("close");
+		exit(EXIT_FAILURE);
+	}
+
 	printf("Device: %s\n", FRAMEBUFFER_FILENAME);
 	print_sc(sc);
 	if(sc.nonstd){
 		fprintf(stderr, "error: %s has non-standard pixel format\n", FRAMEBUFFER_FILENAME);
-		exit(EXIT_FAILURE);
-	}
-
-	if(close(d)==-1){
-		perror("close");
 		exit(EXIT_FAILURE);
 	}
 
