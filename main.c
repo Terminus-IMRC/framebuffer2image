@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 	_Bool dev_set=0;
 	enum image_type type;
 	char *type_str;
+	_Bool type_set=0;
 	struct fb_var_screeninfo sc;
 	uint32_t effective_bytes_per_pixel;
 	uint64_t size;
@@ -64,6 +65,10 @@ int main(int argc, char *argv[])
 				dev_set=!0;
 				break;
 			case 't':
+				if(type_set){
+					fprintf(stderr, "error: output image type option is specified more than once\n");
+					exit(EXIT_FAILURE);
+				}
 				if(strlen(optarg)>4){
 					fprintf(stderr, "error: output image type name is too long\n");
 					exit(EXIT_FAILURE);
@@ -75,6 +80,7 @@ int main(int argc, char *argv[])
 					type=IT_JPEG;
 				else if(!strcasecmp("jpeg", type_str))
 					type=IT_JPEG;
+				type_set=!0;
 				break;
 			case 'h':
 			default:
