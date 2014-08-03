@@ -120,6 +120,11 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	if(sc.bits_per_pixel>64){
+		fprintf(stderr, "error: color bits per pixel is too high\n");
+		exit(EXIT_FAILURE);
+	}
+
 	effective_bytes_per_pixel=sc.bits_per_pixel%8==0?sc.bits_per_pixel/8:(uint32_t)(sc.bits_per_pixel/8)+1;
 
 	if((uint64_t)sc.xres*sc.yres>(~((uint64_t)0))/effective_bytes_per_pixel){
