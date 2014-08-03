@@ -39,6 +39,10 @@ int main(int argc, char *argv[])
 	while((opt=getopt(argc, argv, "d:h"))!=-1){
 		switch(opt){
 			case 'd':
+				if(dev_set){
+					fprintf(stderr, "error: framebuffer device option is specified more than once\n");
+					exit(EXIT_FAILURE);
+				}
 				if(strlen(optarg)>_POSIX_PATH_MAX){
 					fprintf(stderr, "error: framebuffer device path name is too long\n");
 					exit(EXIT_FAILURE);
