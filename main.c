@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 
 void usage(char *progname, FILE *f)
 {
-	fprintf(f, "Usage: %s [-d framebuffer_device]\n", progname);
+	fprintf(f, "Usage: %s [-d framebuffer_device] -t [png|[jpg|jpeg]]\n", progname);
 	fprintf(f, "framebuffer_device is set to %s by default\n", DEFAULT_FRAMEBUFFER_DEVICE);
 
 	return;
