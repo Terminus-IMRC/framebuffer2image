@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
 					type=IT_JPEG;
 				else if(!strcasecmp("jpeg", type_str))
 					type=IT_JPEG;
+				free(type_str);
 				type_set=!0;
 				break;
 			case 'h':
@@ -99,8 +100,6 @@ int main(int argc, char *argv[])
 		strncpy(dev, DEFAULT_FRAMEBUFFER_DEVICE, _POSIX_PATH_MAX+1);
 		dev_set=!0;
 	}
-
-	free(type_str);
 
 	if((d=open(dev, O_RDONLY))==-1){
 		perror("open");
