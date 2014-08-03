@@ -1,4 +1,7 @@
+#define __USE_POSIX
+#include <limits.h>
 #include <inttypes.h>
+#include <stdint.h>
 #include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -20,6 +23,10 @@ int main(int argc, char *argv[])
 	int opt;
 	char *dev=NULL;
 	struct fb_var_screeninfo sc;
+	uint32_t effective_bytes_per_pixel;
+	uint64_t size;
+	void *buf;
+	ssize_t rc;
 
 	while((opt=getopt(argc, argv, "d:h"))!=-1){
 		switch(opt){
@@ -52,17 +59,66 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if(close(d)==-1){
-		perror("close");
-		exit(EXIT_FAILURE);
-	}
-
 	printf("Device: %s\n", dev);
 	print_sc(sc);
 	if(sc.nonstd){
 		fprintf(stderr, "error: %s has non-standard pixel format\n", dev);
 		exit(EXIT_FAILURE);
 	}
+
+	effective_bytes_per_pixel=sc.bits_per_pixel%8==0?sc.bits_per_pixel/8:(uint32_t)(sc.bits_per_pixel/8)+1;
+
+	if((uint64_t)sc.xres*sc.yres>(~((uint64_t)0))/effective_bytes_per_pixel){
+		fprintf(stderr, "error: the framebuffer resoltion is too high\n");
+		exit(EXIT_FAILURE);
+	}
+
+	size=effective_bytes_per_pixel*sc.xres*sc.yres;
+
+	buf=(void*)malloc(size);
+	if(buf==NULL){
+		fprintf(stderr, "error: failed to malloc buf\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if(SSIZE_MAX<size){
+		uint64_t read_bytes;
+
+		for(read_bytes=0; read_bytes<size; read_bytes+=SSIZE_MAX){
+			rc=read(d, (uint8_t*)buf+read_bytes, SSIZE_MAX);
+			if(rc==-1){
+				perror("read");
+				exit(EXIT_FAILURE);
+			}else if(rc!=SSIZE_MAX){
+				fprintf(stderr, "error: read returned unexpected read count\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+		rc=read(d, (uint8_t*)buf+(read_bytes-SSIZE_MAX), size-(read_bytes-SSIZE_MAX));
+		if(rc==-1){
+			perror("read");
+			exit(EXIT_FAILURE);
+		}else if((uint64_t)rc!=size-(read_bytes-SSIZE_MAX)){
+			fprintf(stderr, "error: read returned unexpected read count\n");
+			exit(EXIT_FAILURE);
+		}
+	}else{
+		rc=read(d, buf, size);
+		if(rc==-1){
+			perror("read");
+			exit(EXIT_FAILURE);
+		}else if((uint64_t)rc!=size){
+			fprintf(stderr, "error: read returned unexpected read count\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if(close(d)==-1){
+		perror("close");
+		exit(EXIT_FAILURE);
+	}
+
+	free(buf);
 
 	return 0;
 }
