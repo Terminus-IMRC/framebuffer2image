@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <getopt.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -21,17 +22,29 @@ int main(int argc, char *argv[])
 {
 	int d;
 	int opt;
-	char *dev=NULL;
+	char *dev;
+	_Bool dev_set=0;
 	struct fb_var_screeninfo sc;
 	uint32_t effective_bytes_per_pixel;
 	uint64_t size;
 	void *buf;
 	ssize_t rc;
 
+	dev=(char*)malloc((_POSIX_PATH_MAX+1)*sizeof(char));
+	if(dev==NULL){
+		fprintf(stderr, "error: failed to malloc dev\n");
+		exit(EXIT_FAILURE);
+	}
+
 	while((opt=getopt(argc, argv, "d:h"))!=-1){
 		switch(opt){
 			case 'd':
-				dev=optarg;
+				if(strlen(optarg)>_POSIX_PATH_MAX){
+					fprintf(stderr, "error: framebuffer device path name is too long\n");
+					exit(EXIT_FAILURE);
+				}
+				strncpy(dev, optarg, _POSIX_PATH_MAX+1);
+				dev_set=!0;
 				break;
 			case 'h':
 			default:
@@ -46,8 +59,10 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if(dev==NULL)
-		dev=DEFAULT_FRAMEBUFFER_DEVICE;
+	if(!dev_set){
+		strncpy(dev, DEFAULT_FRAMEBUFFER_DEVICE, _POSIX_PATH_MAX+1);
+		dev_set=!0;
+	}
 
 	if((d=open(dev, O_RDONLY))==-1){
 		perror("open");
@@ -112,6 +127,8 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	free(dev);
 
 	if(close(d)==-1){
 		perror("close");
