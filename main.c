@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -8,16 +9,40 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#define FRAMEBUFFER_FILENAME "/dev/fb0"
+#define DEFAULT_FRAMEBUFFER_DEVICE "/dev/fb0"
 
+void usage(char *progname, FILE *f);
 void print_sc(struct fb_var_screeninfo sc);
 
-int main()
+int main(int argc, char *argv[])
 {
 	int d;
+	int opt;
+	char *dev=NULL;
 	struct fb_var_screeninfo sc;
 
-	if((d=open(FRAMEBUFFER_FILENAME, O_RDONLY))==-1){
+	while((opt=getopt(argc, argv, "d:h"))!=-1){
+		switch(opt){
+			case 'd':
+				dev=optarg;
+				break;
+			case 'h':
+			default:
+				usage(argv[0], stderr);
+				exit(EXIT_FAILURE);
+		}
+	}
+
+	if(optind!=argc){
+		fprintf(stderr, "error: extra option specified\n");
+		usage(argv[0], stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	if(dev==NULL)
+		dev=DEFAULT_FRAMEBUFFER_DEVICE;
+
+	if((d=open(dev, O_RDONLY))==-1){
 		perror("open");
 		exit(EXIT_FAILURE);
 	}
@@ -32,14 +57,22 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Device: %s\n", FRAMEBUFFER_FILENAME);
+	printf("Device: %s\n", dev);
 	print_sc(sc);
 	if(sc.nonstd){
-		fprintf(stderr, "error: %s has non-standard pixel format\n", FRAMEBUFFER_FILENAME);
+		fprintf(stderr, "error: %s has non-standard pixel format\n", dev);
 		exit(EXIT_FAILURE);
 	}
 
 	return 0;
+}
+
+void usage(char *progname, FILE *f)
+{
+	fprintf(f, "Usage: %s [-d framebuffer_device]\n", progname);
+	fprintf(f, "framebuffer_device is set to %s by default\n", DEFAULT_FRAMEBUFFER_DEVICE);
+
+	return;
 }
 
 void print_sc(struct fb_var_screeninfo sc)
