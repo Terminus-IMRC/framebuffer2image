@@ -13,6 +13,7 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <png.h>
 
 #define DEFAULT_FRAMEBUFFER_DEVICE "/dev/fb0"
 
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
 	uint64_t size;
 	void *buf;
 	ssize_t rc;
+	int png_colortype;
 
 	dev=(char*)malloc((_POSIX_PATH_MAX+1)*sizeof(char));
 	if(dev==NULL){
@@ -163,6 +165,28 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "error: read returned unexpected read count\n");
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	switch(type){
+		case IT_PNG:
+
+			if(sc.grayscale){
+				if(sc.transp.length==0)
+					png_colortype=PNG_COLOR_TYPE_GRAY;
+				else
+					png_colortype=PNG_COLOR_TYPE_GRAY_ALPHA;
+			}else{
+				if(sc.transp.length==0)
+					png_colortype=PNG_COLOR_TYPE_RGB;
+				else
+					png_colortype=PNG_COLOR_TYPE_RGB_ALPHA;
+			}
+
+			break;
+
+		default:
+			fprintf(stderr, "error: unknown color type (internal error)\n");
+			exit(EXIT_FAILURE);
 	}
 
 	free(dev);
