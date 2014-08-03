@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <getopt.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -15,6 +16,10 @@
 
 #define DEFAULT_FRAMEBUFFER_DEVICE "/dev/fb0"
 
+enum image_type{
+	IT_PNG, IT_JPEG
+};
+
 void usage(char *progname, FILE *f);
 void print_sc(struct fb_var_screeninfo sc);
 
@@ -24,6 +29,8 @@ int main(int argc, char *argv[])
 	int opt;
 	char *dev;
 	_Bool dev_set=0;
+	enum image_type type;
+	char *type_str;
 	struct fb_var_screeninfo sc;
 	uint32_t effective_bytes_per_pixel;
 	uint64_t size;
@@ -36,7 +43,13 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while((opt=getopt(argc, argv, "d:h"))!=-1){
+	type_str=(char*)malloc((4+1)*sizeof(char));
+	if(type_str==NULL){
+		fprintf(stderr, "error: failed to malloc type_str\n");
+		exit(EXIT_FAILURE);
+	}
+
+	while((opt=getopt(argc, argv, "d:t:h"))!=-1){
 		switch(opt){
 			case 'd':
 				if(dev_set){
@@ -49,6 +62,19 @@ int main(int argc, char *argv[])
 				}
 				strncpy(dev, optarg, _POSIX_PATH_MAX+1);
 				dev_set=!0;
+				break;
+			case 't':
+				if(strlen(optarg)>4){
+					fprintf(stderr, "error: output image type name is too long\n");
+					exit(EXIT_FAILURE);
+				}
+				strncpy(type_str, optarg, 4+1);
+				if(!strcasecmp("png", type_str))
+					type=IT_PNG;
+				else if(!strcasecmp("jpg", type_str))
+					type=IT_JPEG;
+				else if(!strcasecmp("jpeg", type_str))
+					type=IT_JPEG;
 				break;
 			case 'h':
 			default:
@@ -67,6 +93,8 @@ int main(int argc, char *argv[])
 		strncpy(dev, DEFAULT_FRAMEBUFFER_DEVICE, _POSIX_PATH_MAX+1);
 		dev_set=!0;
 	}
+
+	free(type_str);
 
 	if((d=open(dev, O_RDONLY))==-1){
 		perror("open");
