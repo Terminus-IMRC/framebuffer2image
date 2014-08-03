@@ -169,7 +169,6 @@ int main(int argc, char *argv[])
 
 	switch(type){
 		case IT_PNG:
-
 			if(sc.grayscale){
 				if(sc.transp.length==0)
 					png_colortype=PNG_COLOR_TYPE_GRAY;
