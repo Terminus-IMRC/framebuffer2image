@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
 
 	if(!type_set){
 		fprintf(stderr, "error: specify output image type\n");
+		usage(argv[0], stderr);
 		exit(EXIT_FAILURE);
 	}
 
