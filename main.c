@@ -82,6 +82,10 @@ int main(int argc, char *argv[])
 					type=IT_JPEG;
 				else if(!strcasecmp("jpeg", type_str))
 					type=IT_JPEG;
+				else{
+					fprintf(stderr, "error: unrecognized output image type: %s\n", type_str);
+					exit(EXIT_SUCCESS);
+				}
 				free(type_str);
 				type_set=!0;
 				break;
