@@ -241,10 +241,10 @@ void print_sc(struct fb_var_screeninfo sc)
 		printf("blue.offset: %" PRIu32 "\n", sc.blue.offset);
 		printf("blue.length: %" PRIu32 "\n", sc.blue.length);
 		printf("blue.msb_right: %" PRIu32 "\n", sc.blue.msb_right);
-		printf("transp.offset: %" PRIu32 "\n", sc.transp.offset);
-		printf("transp.length: %" PRIu32 "\n", sc.transp.length);
-		printf("transp.msb_right: %" PRIu32 "\n", sc.transp.msb_right);
 	}
+	printf("transp.offset: %" PRIu32 "\n", sc.transp.offset);
+	printf("transp.length: %" PRIu32 "\n", sc.transp.length);
+	printf("transp.msb_right: %" PRIu32 "\n", sc.transp.msb_right);
 	printf("nonstd: %" PRIu32 "\n", sc.nonstd);
 	printf("rotate: %" PRIu32 "\n", sc.rotate);
 
