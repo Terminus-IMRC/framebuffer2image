@@ -107,6 +107,11 @@ int main(int argc, char *argv[])
 		dev_set=!0;
 	}
 
+	if(!type_set){
+		fprintf(stderr, "error: specify output image type\n");
+		exit(EXIT_FAILURE);
+	}
+
 	if((d=open(dev, O_RDONLY))==-1){
 		perror("open");
 		exit(EXIT_FAILURE);
