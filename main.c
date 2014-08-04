@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
 					type=IT_JPEG;
 				else{
 					fprintf(stderr, "error: unrecognized output image type: %s\n", type_str);
+					usage(argv[0], stderr);
 					exit(EXIT_FAILURE);
 				}
 				free(type_str);
