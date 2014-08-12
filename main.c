@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 			break;
 
 		default:
-			fprintf(stderr, "error: unknown color type (internal error)\n");
+			fprintf(stderr, "error: unknown output image type (internal error)\n");
 			exit(EXIT_FAILURE);
 	}
 
