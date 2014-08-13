@@ -17,6 +17,7 @@
 #include "encode_png.h"
 
 #define DEFAULT_FRAMEBUFFER_DEVICE "/dev/fb0"
+#define DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX "out"
 
 enum image_type{
 	IT_PNG, IT_JPEG
@@ -24,6 +25,7 @@ enum image_type{
 
 void usage(char *progname, FILE *f);
 void print_sc(struct fb_var_screeninfo sc);
+void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type);
 
 int main(int argc, char *argv[])
 {
@@ -206,6 +208,8 @@ int main(int argc, char *argv[])
 
 	free(buf);
 
+	output_image_to_file(encoded_image, encoded_image_size, type);
+
 	return 0;
 }
 
@@ -240,6 +244,48 @@ void print_sc(struct fb_var_screeninfo sc)
 	printf("transp.msb_right: %" PRIu32 "\n", sc.transp.msb_right);
 	printf("nonstd: %" PRIu32 "\n", sc.nonstd);
 	printf("rotate: %" PRIu32 "\n", sc.rotate);
+
+	return;
+}
+
+void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type)
+{
+	int fd;
+	ssize_t wc;
+	char *filename;
+
+	switch(type){
+		case IT_PNG:
+			filename=DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX ".png";
+			break;
+
+		case IT_JPEG:
+			filename=DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX ".jpg";
+			break;
+
+		default:
+			fprintf(stderr, "error: unknown output image type (internal error)\n");
+			exit(EXIT_FAILURE);
+	}
+
+	if((fd=open(filename, O_CREAT|O_TRUNC|O_WRONLY, S_IRUSR|S_IWUSR))==-1){
+		perror("open");
+		exit(EXIT_FAILURE);
+	}
+
+	wc=write(fd, encoded_image, encoded_image_size);
+	if(wc==-1){
+		perror("write");
+		exit(EXIT_FAILURE);
+	}else if((uint32_t)wc!=encoded_image_size){
+		fprintf(stderr, "error: write returned unexpected write count\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if(close(fd)==-1){
+		perror("close");
+		exit(EXIT_FAILURE);
+	}
 
 	return;
 }
