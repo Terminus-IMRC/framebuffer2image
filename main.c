@@ -185,6 +185,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if(close(d)==-1){
+		perror("close");
+		exit(EXIT_FAILURE);
+	}
+
 	switch(type){
 		case IT_PNG:
 			encode_png_init(sc, effective_bytes_per_pixel);
@@ -198,11 +203,6 @@ int main(int argc, char *argv[])
 	}
 
 	free(dev);
-
-	if(close(d)==-1){
-		perror("close");
-		exit(EXIT_FAILURE);
-	}
 
 	free(buf);
 
