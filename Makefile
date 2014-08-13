@@ -11,7 +11,7 @@ all: $(PROG)
 OBJS=$(SRCS:%.c=%.c.o)
 DEPS=$(SRCS:%.c=%.c.d)
 ALLDEP=$(MAKEFILE_LIST_SANS_DEPS)
-TOCLEAN=gmon.out
+TOCLEAN=gmon.out out.png out.jpg
 
 EXTRA_TARGETS=$(filter-out $(TARGETS), $(MAKECMDGOALS))
 ifneq '$(EXTRA_TARGETS)' ''
