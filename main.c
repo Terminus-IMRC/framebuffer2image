@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 	uint64_t size;
 	void *buf;
 	ssize_t rc;
+	_Bool verbose=0;
 	uint8_t *encoded_image;
 	uint32_t encoded_image_size;
 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while((opt=getopt(argc, argv, "d:t:h"))!=-1){
+	while((opt=getopt(argc, argv, "d:t:vh"))!=-1){
 		switch(opt){
 			case 'd':
 				if(dev_set){
@@ -93,6 +94,9 @@ int main(int argc, char *argv[])
 				}
 				free(type_str);
 				type_set=!0;
+				break;
+			case 'v':
+				verbose=!0;
 				break;
 			case 'h':
 			default:
