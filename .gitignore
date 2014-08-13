@@ -1,0 +1,6 @@
+framebuffer2image
+*.c.d
+*.c.o
+*.png
+*.jpg
+gmon.out
