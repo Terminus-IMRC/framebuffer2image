@@ -14,6 +14,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <png.h>
+#include "encode_png.h"
 
 #define DEFAULT_FRAMEBUFFER_DEVICE "/dev/fb0"
 
@@ -38,7 +39,8 @@ int main(int argc, char *argv[])
 	uint64_t size;
 	void *buf;
 	ssize_t rc;
-	int png_colortype;
+	uint8_t *encoded_image;
+	uint32_t encoded_image_size;
 
 	dev=(char*)malloc((_POSIX_PATH_MAX+1)*sizeof(char));
 	if(dev==NULL){
@@ -185,17 +187,8 @@ int main(int argc, char *argv[])
 
 	switch(type){
 		case IT_PNG:
-			if(sc.grayscale){
-				if(sc.transp.length==0)
-					png_colortype=PNG_COLOR_TYPE_GRAY;
-				else
-					png_colortype=PNG_COLOR_TYPE_GRAY_ALPHA;
-			}else{
-				if(sc.transp.length==0)
-					png_colortype=PNG_COLOR_TYPE_RGB;
-				else
-					png_colortype=PNG_COLOR_TYPE_RGB_ALPHA;
-			}
+			encode_png_init(sc, effective_bytes_per_pixel);
+			encoded_image=encode_png(effective_bytes_per_pixel, buf, &encoded_image_size);
 
 			break;
 
