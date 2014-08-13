@@ -132,8 +132,11 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Device: %s\n", dev);
-	print_sc(sc);
+	if(verbose){
+		printf("Device: %s\n", dev);
+		print_sc(sc);
+	}
+
 	if(sc.nonstd){
 		fprintf(stderr, "error: %s has non-standard pixel format\n", dev);
 		exit(EXIT_FAILURE);
