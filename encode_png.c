@@ -38,15 +38,17 @@ struct buf_linear_list_node{
 
 int png_colortype;
 int color_components;
+uint8_t fb_effective_bytes_per_pixel;
 int png_effective_bytes_per_pixel_color;
 size_t fb_pointer_size, png_pointer_size;
 uint32_t width, height;
 struct bitop_procedure bp;
 
-void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel)
+void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg)
 {
 	width=sc.xres;
 	height=sc.yres;
+	fb_effective_bytes_per_pixel=fb_effective_bytes_per_pixel_arg;
 
 	memset(&bp, 0, sizeof(bp));
 
@@ -178,7 +180,7 @@ void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per
 	return;
 }
 
-uint8_t *encode_png(uint8_t fb_effective_bytes_per_pixel, void *fbbuf_1dim, uint32_t *imagesize)
+uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 {
 	int pipefd[2], pipefd2[2];
 	pid_t cpid;

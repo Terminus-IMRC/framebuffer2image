@@ -157,13 +157,13 @@ int main(int argc, char *argv[])
 	switch(type){
 		case IT_PNG:
 			encode_png_init(sc, fb_effective_bytes_per_pixel);
-			encoded_image=encode_png(fb_effective_bytes_per_pixel, buf, &encoded_image_size);
+			encoded_image=encode_png(buf, &encoded_image_size);
 
 			break;
 
 		case IT_JPEG:
 			encode_jpeg_init(sc, fb_effective_bytes_per_pixel);
-			encoded_image=encode_jpeg(fb_effective_bytes_per_pixel, buf, &encoded_image_size);
+			encoded_image=encode_jpeg(buf, &encoded_image_size);
 
 			break;
 

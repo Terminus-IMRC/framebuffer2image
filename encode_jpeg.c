@@ -23,6 +23,7 @@ struct bitop_procedure{
 
 J_COLOR_SPACE jpeg_colortype;
 int color_components;
+uint8_t fb_effective_bytes_per_pixel;
 int jpeg_effective_bytes_per_pixel_color;
 size_t fb_pointer_size, jpeg_pointer_size;
 uint32_t width, height;
@@ -32,10 +33,11 @@ long unsigned int localimagesize;
 
 static uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize);
 
-void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel)
+void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg)
 {
 	width=sc.xres;
 	height=sc.yres;
+	fb_effective_bytes_per_pixel=fb_effective_bytes_per_pixel_arg;
 	jpeg_effective_bytes_per_pixel_color=1;
 
 	memset(&bp, 0, sizeof(bp));
@@ -160,7 +162,7 @@ void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_pe
 	return;
 }
 
-uint8_t *encode_jpeg(uint8_t fb_effective_bytes_per_pixel, void *fbbuf_1dim, uint32_t *imagesize)
+uint8_t *encode_jpeg(void *fbbuf_1dim, uint32_t *imagesize)
 {
 	uint32_t i, j;
 	uint8_t *toret;
