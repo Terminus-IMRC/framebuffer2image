@@ -1,8 +1,8 @@
 PROG=framebuffer2image
-SRCS=main.c fill_bits.c encode_png.c
+SRCS=main.c fill_bits.c encode_png.c encode_jpeg.c
 TARGETS=all $(PROG) %.o %.d run line clean
 NONEED_DEP_TARGETS+=clean line
-LINKFLAGS+=-lpng
+LINKFLAGS+=-lpng -ljpeg
 OUTPUT_IMAGE_TYPE=png
 
 .PHONY: all

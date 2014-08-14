@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <png.h>
 #include "encode_png.h"
+#include "encode_jpeg.h"
 
 #define DEFAULT_FRAMEBUFFER_DEVICE "/dev/fb0"
 #define DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX "out"
@@ -203,6 +204,12 @@ int main(int argc, char *argv[])
 		case IT_PNG:
 			encode_png_init(sc, effective_bytes_per_pixel);
 			encoded_image=encode_png(effective_bytes_per_pixel, buf, &encoded_image_size);
+
+			break;
+
+		case IT_JPEG:
+			encode_jpeg_init(sc, effective_bytes_per_pixel);
+			encoded_image=encode_jpeg(effective_bytes_per_pixel, buf, &encoded_image_size);
 
 			break;
 
