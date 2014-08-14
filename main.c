@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	struct fb_var_screeninfo sc;
 	uint8_t fb_effective_bytes_per_pixel;
 	uint64_t size;
-	void *buf;
+	uint8_t *buf;
 	_Bool verbose=0;
 	uint8_t *encoded_image;
 	uint32_t encoded_image_size;
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	buf=(void*)malloc(size);
+	buf=(uint8_t*)malloc(size);
 	if(buf==NULL){
 		fprintf(stderr, "error: failed to malloc buf\n");
 		exit(EXIT_FAILURE);
