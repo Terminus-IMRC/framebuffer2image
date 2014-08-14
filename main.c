@@ -14,6 +14,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <png.h>
+#include "read_fb.h"
 #include "encode_png.h"
 #include "encode_jpeg.h"
 
@@ -30,7 +31,6 @@ void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, e
 
 int main(int argc, char *argv[])
 {
-	int d;
 	int opt;
 	char *dev;
 	_Bool dev_set=0;
@@ -41,7 +41,6 @@ int main(int argc, char *argv[])
 	uint32_t effective_bytes_per_pixel;
 	uint64_t size;
 	void *buf;
-	ssize_t rc;
 	_Bool verbose=0;
 	uint8_t *encoded_image;
 	uint32_t encoded_image_size;
@@ -123,15 +122,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if((d=open(dev, O_RDONLY))==-1){
-		perror("open");
-		exit(EXIT_FAILURE);
-	}
-
-	if(ioctl(d, FBIOGET_VSCREENINFO, &sc)==-1){
-		perror("ioctl(..., FBIOGET_VSCREENINFO, ...)");
-		exit(EXIT_FAILURE);
-	}
+	read_fb_init(dev, &sc, &effective_bytes_per_pixel, &size);
 
 	if(verbose){
 		printf("Device: %s\n", dev);
@@ -148,14 +139,10 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	effective_bytes_per_pixel=sc.bits_per_pixel%8==0?sc.bits_per_pixel/8:(uint32_t)(sc.bits_per_pixel/8)+1;
-
 	if((uint64_t)sc.xres*sc.yres>(~((uint64_t)0))/effective_bytes_per_pixel){
 		fprintf(stderr, "error: the framebuffer resoltion is too high\n");
 		exit(EXIT_FAILURE);
 	}
-
-	size=effective_bytes_per_pixel*sc.xres*sc.yres;
 
 	buf=(void*)malloc(size);
 	if(buf==NULL){
@@ -163,42 +150,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if(SSIZE_MAX<size){
-		uint64_t read_bytes;
-
-		for(read_bytes=0; read_bytes<size; read_bytes+=SSIZE_MAX){
-			rc=read(d, (uint8_t*)buf+read_bytes, SSIZE_MAX);
-			if(rc==-1){
-				perror("read");
-				exit(EXIT_FAILURE);
-			}else if(rc!=SSIZE_MAX){
-				fprintf(stderr, "error: read returned unexpected read count\n");
-				exit(EXIT_FAILURE);
-			}
-		}
-		rc=read(d, (uint8_t*)buf+(read_bytes-SSIZE_MAX), size-(read_bytes-SSIZE_MAX));
-		if(rc==-1){
-			perror("read");
-			exit(EXIT_FAILURE);
-		}else if((uint64_t)rc!=size-(read_bytes-SSIZE_MAX)){
-			fprintf(stderr, "error: read returned unexpected read count\n");
-			exit(EXIT_FAILURE);
-		}
-	}else{
-		rc=read(d, buf, size);
-		if(rc==-1){
-			perror("read");
-			exit(EXIT_FAILURE);
-		}else if((uint64_t)rc!=size){
-			fprintf(stderr, "error: read returned unexpected read count\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	if(close(d)==-1){
-		perror("close");
-		exit(EXIT_FAILURE);
-	}
+	read_fb(dev, buf, size);
 
 	switch(type){
 		case IT_PNG:
