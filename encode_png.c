@@ -63,7 +63,6 @@ void encode_png_init(struct fb_var_screeninfo sc, int fb_effective_bytes_per_pix
 				case 8:
 				case 16:
 					bp.gray.mask=fill_bits(sc.bits_per_pixel);
-					bp.gray.rshift=0;
 					bp.gray.depth=sc.bits_per_pixel;
 					break;
 
@@ -75,10 +74,9 @@ void encode_png_init(struct fb_var_screeninfo sc, int fb_effective_bytes_per_pix
 						bp.gray.depth=8;
 					else
 						bp.gray.depth=16;
-					bp.gray.rshift=sc.bits_per_pixel-bp.gray.depth;
 					break;
 			}
-			bp.gray.rshift-=png_effective_bytes_per_pixel_color*8-bp.gray.depth;
+			bp.gray.rshift=sc.bits_per_pixel-png_effective_bytes_per_pixel_color*8;
 		}else{
 			if((sc.transp.offset!=0)&&(sc.transp.offset+sc.transp.length-1!=sc.bits_per_pixel)){
 				fprintf(stderr, "error: gray bit field which is detected by alpha bit field is fragmented\n");
