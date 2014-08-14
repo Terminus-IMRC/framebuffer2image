@@ -10,10 +10,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+int d;
+
 void read_fb_init(char *devname, struct fb_var_screeninfo *sc, uint32_t *effective_bytes_per_pixel, uint64_t *size)
 {
-	int d;
-
 	if((d=open(devname, O_RDONLY))==-1){
 		perror("open");
 		exit(EXIT_FAILURE);
@@ -27,21 +27,20 @@ void read_fb_init(char *devname, struct fb_var_screeninfo *sc, uint32_t *effecti
 	*effective_bytes_per_pixel=sc->bits_per_pixel%8==0?sc->bits_per_pixel/8:(uint32_t)(sc->bits_per_pixel/8)+1;
 	*size=*effective_bytes_per_pixel*sc->xres*sc->yres;
 
-	if(close(d)==-1){
-		perror("close");
-		exit(EXIT_FAILURE);
-	}
-
 	return;
 }
 
-void read_fb(char *devname, char *buf, uint32_t size)
+void read_fb(char *buf, uint32_t size)
 {
-	int d;
 	ssize_t rc;
+	off_t off;
 
-	if((d=open(devname, O_RDONLY))==-1){
-		perror("open");
+	off=lseek(d, 0, SEEK_SET);
+	if(off==-1){
+		perror("lseek");
+		exit(EXIT_FAILURE);
+	}else if(off!=0){
+		fprintf(stderr, "error: lseek returned unexpected offset\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -77,6 +76,11 @@ void read_fb(char *devname, char *buf, uint32_t size)
 		}
 	}
 
+	return;
+}
+
+void read_fb_finalize()
+{
 	if(close(d)==-1){
 		perror("close");
 		exit(EXIT_FAILURE);

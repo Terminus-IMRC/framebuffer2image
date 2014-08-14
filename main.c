@@ -150,7 +150,9 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	read_fb(dev, buf, size);
+	read_fb(buf, size);
+
+	read_fb_finalize();
 
 	switch(type){
 		case IT_PNG:
