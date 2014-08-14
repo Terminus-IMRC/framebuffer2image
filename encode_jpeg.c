@@ -39,6 +39,7 @@ void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_pe
 	height=sc.yres;
 	fb_effective_bytes_per_pixel=fb_effective_bytes_per_pixel_arg;
 	jpeg_effective_bytes_per_pixel_color=1;
+	jpeg_pointer_size=sizeof(uint8_t*);
 
 	memset(&bp, 0, sizeof(bp));
 
@@ -142,20 +143,6 @@ void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_pe
 
 		default:
 			fprintf(stderr, "error: unknown fb_effective_bytes_per_pixel (internal error)\n");
-			exit(EXIT_FAILURE);
-	}
-
-	switch(jpeg_effective_bytes_per_pixel_color){
-		case 1:
-			jpeg_pointer_size=sizeof(uint8_t*);
-			break;
-
-		case 2:
-			jpeg_pointer_size=sizeof(uint16_t*);
-			break;
-
-		default:
-			fprintf(stderr, "error: unknown jpeg_effective_bytes_per_pixel_color (internal error)\n");
 			exit(EXIT_FAILURE);
 	}
 
