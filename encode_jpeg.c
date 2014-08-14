@@ -27,6 +27,8 @@ int jpeg_effective_bytes_per_pixel_color;
 size_t fb_pointer_size, jpeg_pointer_size;
 uint32_t width, height;
 struct bitop_procedure bp;
+uint8_t *retbuf=NULL;
+long unsigned int localimagesize;
 
 static uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize);
 
@@ -161,7 +163,7 @@ void encode_jpeg_init(struct fb_var_screeninfo sc, int fb_effective_bytes_per_pi
 uint8_t *encode_jpeg(uint8_t fb_effective_bytes_per_pixel, void *fbbuf_1dim, uint32_t *imagesize)
 {
 	uint32_t i, j;
-	uint8_t *retbuf;
+	uint8_t *toret;
 	uint8_t **fbbuf_orig;
 	uint8_t *finalbuf_1dim, **finalbuf;
 	uint8_t **buf_8;
@@ -356,23 +358,22 @@ uint8_t *encode_jpeg(uint8_t fb_effective_bytes_per_pixel, void *fbbuf_1dim, uin
 
 	free(fbbuf_orig);
 
-	retbuf=encode_jpeg_core(finalbuf, imagesize);
+	toret=encode_jpeg_core(finalbuf, imagesize);
 
 	free(finalbuf);
 	free(finalbuf_1dim);
 
-	return retbuf;
+	return toret;
 }
 
 uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize)
 {
-	uint8_t *retbuf;
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 
 	cinfo.err=jpeg_std_error(&jerr);
 	jpeg_create_compress(&cinfo);
-	jpeg_mem_dest(&cinfo, &retbuf, (long unsigned int*)imagesize);
+	jpeg_mem_dest(&cinfo, &retbuf, &localimagesize);
 
 	cinfo.image_width=width;
 	cinfo.image_height=height;
@@ -386,6 +387,8 @@ uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize)
 	jpeg_finish_compress(&cinfo);
 
 	jpeg_destroy_compress(&cinfo);
+
+	*imagesize=localimagesize;
 
 	return retbuf;
 }
