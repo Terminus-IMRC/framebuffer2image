@@ -366,6 +366,13 @@ uint8_t *encode_jpeg(uint8_t fb_effective_bytes_per_pixel, void *fbbuf_1dim, uin
 	return toret;
 }
 
+void encode_jpeg_finalize()
+{
+	free(retbuf);
+
+	return;
+}
+
 uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize)
 {
 	struct jpeg_compress_struct cinfo;

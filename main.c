@@ -178,6 +178,16 @@ int main(int argc, char *argv[])
 
 	output_image_to_file(encoded_image, encoded_image_size, type);
 
+	switch(type){
+		case IT_JPEG:
+			encode_jpeg_finalize();
+			break;
+
+		default:
+			fprintf(stderr, "error: unknown output image type (internal error)\n");
+			exit(EXIT_FAILURE);
+	}
+
 	return 0;
 }
 
