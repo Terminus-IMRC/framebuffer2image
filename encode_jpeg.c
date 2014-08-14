@@ -354,7 +354,12 @@ uint8_t *encode_jpeg(uint8_t fb_effective_bytes_per_pixel, void *fbbuf_1dim, uin
 			exit(EXIT_FAILURE);
 	}
 
+	free(fbbuf_orig);
+
 	retbuf=encode_jpeg_core(finalbuf, imagesize);
+
+	free(finalbuf);
+	free(finalbuf_1dim);
 
 	return retbuf;
 }
