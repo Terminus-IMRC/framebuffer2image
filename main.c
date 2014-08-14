@@ -13,7 +13,6 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <png.h>
 #include "read_fb.h"
 #include "encode_png.h"
 #include "encode_jpeg.h"
