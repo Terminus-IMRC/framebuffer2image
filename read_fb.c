@@ -30,7 +30,7 @@ void read_fb_init(char *devname, struct fb_var_screeninfo *sc, uint8_t *effectiv
 	return;
 }
 
-void read_fb(char *buf, uint32_t size)
+void read_fb(uint8_t *buf, uint32_t size)
 {
 	ssize_t rc;
 	off_t off;
