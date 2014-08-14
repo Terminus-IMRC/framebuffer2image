@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 	char *type_str;
 	_Bool type_set=0;
 	struct fb_var_screeninfo sc;
-	uint32_t effective_bytes_per_pixel;
+	uint8_t fb_effective_bytes_per_pixel;
 	uint64_t size;
 	void *buf;
 	_Bool verbose=0;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	read_fb_init(dev, &sc, &effective_bytes_per_pixel, &size);
+	read_fb_init(dev, &sc, &fb_effective_bytes_per_pixel, &size);
 
 	if(verbose){
 		printf("Device: %s\n", dev);
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if((uint64_t)sc.xres*sc.yres>(~((uint64_t)0))/effective_bytes_per_pixel){
+	if((uint64_t)sc.xres*sc.yres>(~((uint64_t)0))/fb_effective_bytes_per_pixel){
 		fprintf(stderr, "error: the framebuffer resoltion is too high\n");
 		exit(EXIT_FAILURE);
 	}
@@ -156,14 +156,14 @@ int main(int argc, char *argv[])
 
 	switch(type){
 		case IT_PNG:
-			encode_png_init(sc, effective_bytes_per_pixel);
-			encoded_image=encode_png(effective_bytes_per_pixel, buf, &encoded_image_size);
+			encode_png_init(sc, fb_effective_bytes_per_pixel);
+			encoded_image=encode_png(fb_effective_bytes_per_pixel, buf, &encoded_image_size);
 
 			break;
 
 		case IT_JPEG:
-			encode_jpeg_init(sc, effective_bytes_per_pixel);
-			encoded_image=encode_jpeg(effective_bytes_per_pixel, buf, &encoded_image_size);
+			encode_jpeg_init(sc, fb_effective_bytes_per_pixel);
+			encoded_image=encode_jpeg(fb_effective_bytes_per_pixel, buf, &encoded_image_size);
 
 			break;
 

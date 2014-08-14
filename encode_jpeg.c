@@ -32,7 +32,7 @@ long unsigned int localimagesize;
 
 static uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize);
 
-void encode_jpeg_init(struct fb_var_screeninfo sc, int fb_effective_bytes_per_pixel)
+void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel)
 {
 	width=sc.xres;
 	height=sc.yres;

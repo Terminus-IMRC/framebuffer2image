@@ -43,7 +43,7 @@ size_t fb_pointer_size, png_pointer_size;
 uint32_t width, height;
 struct bitop_procedure bp;
 
-void encode_png_init(struct fb_var_screeninfo sc, int fb_effective_bytes_per_pixel)
+void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel)
 {
 	width=sc.xres;
 	height=sc.yres;

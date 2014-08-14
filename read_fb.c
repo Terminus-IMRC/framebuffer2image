@@ -12,7 +12,7 @@
 
 int d;
 
-void read_fb_init(char *devname, struct fb_var_screeninfo *sc, uint32_t *effective_bytes_per_pixel, uint64_t *size)
+void read_fb_init(char *devname, struct fb_var_screeninfo *sc, uint8_t *effective_bytes_per_pixel, uint64_t *size)
 {
 	if((d=open(devname, O_RDONLY))==-1){
 		perror("open");
