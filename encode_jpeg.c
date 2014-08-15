@@ -152,7 +152,6 @@ void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_pe
 uint8_t *encode_jpeg(void *fbbuf_1dim, uint32_t *imagesize)
 {
 	uint32_t i, j;
-	uint8_t *toret;
 	uint8_t **fbbuf_orig;
 	uint8_t *finalbuf_1dim, **finalbuf;
 	uint8_t **buf_8;
@@ -347,12 +346,12 @@ uint8_t *encode_jpeg(void *fbbuf_1dim, uint32_t *imagesize)
 
 	free(fbbuf_orig);
 
-	toret=encode_jpeg_core(finalbuf, imagesize);
+	retbuf=encode_jpeg_core(finalbuf, imagesize);
 
 	free(finalbuf);
 	free(finalbuf_1dim);
 
-	return toret;
+	return retbuf;
 }
 
 void encode_jpeg_finalize()
