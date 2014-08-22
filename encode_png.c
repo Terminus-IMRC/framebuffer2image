@@ -892,26 +892,26 @@ void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
 		png_ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		if(!png_ptr){
 			fprintf(stderr, "error: png_create_write_struct returned zero\n");
-			exit(EXIT_FAILURE);
+			_exit(EXIT_FAILURE);
 		}
 
 		info_ptr=png_create_info_struct(png_ptr);
 		if(!info_ptr){
 			png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 			fprintf(stderr, "error: png_create_info_struct returned zero\n");
-			exit(EXIT_FAILURE);
+			_exit(EXIT_FAILURE);
 		}
 
 		if(setjmp(png_jmpbuf(png_ptr))){
 			png_destroy_write_struct(&png_ptr, &info_ptr);
 			fprintf(stderr, "info: libpng used setjmp\n");
-			exit(EXIT_FAILURE);
+			_exit(EXIT_FAILURE);
 		}
 
 		fp=fdopen(pipefd[1], "wb");
 		if(fp==NULL){
 			perror("fdopen");
-			exit(EXIT_FAILURE);
+			_exit(EXIT_FAILURE);
 		}
 
 		png_init_io(png_ptr, fp);
@@ -924,12 +924,14 @@ void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
 
 		fclose(fp);
 
-		exit(EXIT_SUCCESS);
+		_exit(EXIT_SUCCESS);
 	}else{
 		uint8_t *retbuf_orig;
 		struct buf_linear_list_node *lbuf_orig=NULL;
 		struct buf_linear_list_node *lbuf=NULL;
 		struct buf_linear_list_node *lbuf_prev=NULL;
+		pid_t w;
+		int status;
 
 		close(pipefd[1]);
 
@@ -1011,7 +1013,27 @@ void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
 
 		retbuf=retbuf_orig;
 
-		wait(NULL);
+		if((w=waitpid(cpid, &status, 0))==-1){
+			perror("waitpid");
+			exit(EXIT_FAILURE);
+		}
+
+		if(!WIFEXITED(status)){
+			fprintf(stderr, "error: child did not use _exit(2) or exit(3)\n");
+			exit(EXIT_FAILURE);
+		}else if(WEXITSTATUS(status)!=EXIT_SUCCESS){
+			fprintf(stderr, "error: child exited with unexpected value: %d\n", WEXITSTATUS(status));
+			exit(EXIT_FAILURE);
+		}else if(WIFSIGNALED(status)){
+#ifdef WCOREDUMP
+			if(WCOREDUMP(status)){
+				fprintf(stderr, "error: child was core dumped\n");
+				exit(EXIT_FAILURE);
+			}
+#endif /* WCOREDUMP */
+			fprintf(stderr, "error: child was killed by signal %d\n", WTERMSIG(status));
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	return;
