@@ -31,7 +31,7 @@ struct bitop_procedure bp;
 uint8_t *retbuf=NULL;
 long unsigned int localimagesize;
 
-static uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize);
+static void encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize);
 
 void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg)
 {
@@ -346,7 +346,7 @@ uint8_t *encode_jpeg(void *fbbuf_1dim, uint32_t *imagesize)
 
 	free(fbbuf_orig);
 
-	retbuf=encode_jpeg_core(finalbuf, imagesize);
+	encode_jpeg_core(finalbuf, imagesize);
 
 	free(finalbuf);
 	free(finalbuf_1dim);
@@ -361,7 +361,7 @@ void encode_jpeg_finalize()
 	return;
 }
 
-uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize)
+void encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize)
 {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -385,5 +385,5 @@ uint8_t *encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize)
 
 	*imagesize=localimagesize;
 
-	return retbuf;
+	return;
 }
