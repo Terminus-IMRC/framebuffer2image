@@ -21,15 +21,15 @@ struct bitop_procedure{
 	struct bitop_procedure_atom red, green, blue, gray, alpha;
 };
 
-J_COLOR_SPACE jpeg_colortype;
-int color_components;
-uint8_t fb_effective_bytes_per_pixel;
-int jpeg_effective_bytes_per_pixel_color;
-size_t fb_pointer_size, jpeg_pointer_size;
-uint32_t width, height;
-struct bitop_procedure bp;
-uint8_t *retbuf=NULL;
-long unsigned int localimagesize;
+static J_COLOR_SPACE jpeg_colortype;
+static int color_components;
+static uint8_t fb_effective_bytes_per_pixel;
+static int jpeg_effective_bytes_per_pixel_color;
+static size_t fb_pointer_size, jpeg_pointer_size;
+static uint32_t width, height;
+static struct bitop_procedure bp;
+static uint8_t *retbuf=NULL;
+static long unsigned int localimagesize;
 
 static void encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize);
 
