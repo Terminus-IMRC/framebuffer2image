@@ -25,5 +25,6 @@
 
 	void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg);
 	uint8_t *encode_png(void *fb_buf_1dim, uint32_t *imagesize);
+	void encode_png_finalize();
 
 #endif /* __ENCODE_PNG_H_INCLUDED__ */

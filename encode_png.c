@@ -1031,3 +1031,10 @@ uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 
 	return retbuf_orig;
 }
+
+void encode_png_finalize()
+{
+	/* nothing to do here now */
+
+	return;
+}

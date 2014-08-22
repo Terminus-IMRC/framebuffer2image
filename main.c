@@ -178,6 +178,10 @@ int main(int argc, char *argv[])
 	output_image_to_file(encoded_image, encoded_image_size, type);
 
 	switch(type){
+		case IT_PNG:
+			encode_png_finalize();
+			break;
+
 		case IT_JPEG:
 			encode_jpeg_finalize();
 			break;
