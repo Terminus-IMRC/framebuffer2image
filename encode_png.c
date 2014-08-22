@@ -36,15 +36,15 @@ struct buf_linear_list_node{
 	struct buf_linear_list_node *next;
 };
 
-int png_colortype;
-int color_components;
-uint8_t fb_effective_bytes_per_pixel;
-int png_effective_bytes_per_pixel_color;
-size_t fb_pointer_size, png_pointer_size;
-uint32_t width, height;
-uint32_t localimagesize=0;
-uint8_t *retbuf=NULL;
-struct bitop_procedure bp;
+static int png_colortype;
+static int color_components;
+static uint8_t fb_effective_bytes_per_pixel;
+static int png_effective_bytes_per_pixel_color;
+static size_t fb_pointer_size, png_pointer_size;
+static uint32_t width, height;
+static uint32_t localimagesize=0;
+static uint8_t *retbuf=NULL;
+static struct bitop_procedure bp;
 
 static void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize);
 
