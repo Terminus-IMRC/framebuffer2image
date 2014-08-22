@@ -44,6 +44,8 @@ size_t fb_pointer_size, png_pointer_size;
 uint32_t width, height;
 struct bitop_procedure bp;
 
+static uint8_t *encode_png_core(uint8_t **finalbuf, uint32_t *imagesize);
+
 void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg)
 {
 	width=sc.xres;
@@ -182,14 +184,9 @@ void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per
 
 uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 {
-	int pipefd[2], pipefd2[2];
-	pid_t cpid;
-	png_structp png_ptr;
-	png_infop info_ptr;
-	FILE *fp;
 	uint32_t i, j;
 	png_bytepp finalbuf;
-	uint8_t *retbuf, *retbuf_orig;
+	uint8_t *retbuf;
 	uint8_t **fbbuf_orig;
 	uint8_t *finalbuf_orig_1dim, **finalbuf_orig;
 	uint8_t **buf_8;
@@ -198,47 +195,6 @@ uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 	uint64_t **buf_64;
 	uint8_t **finalbuf_8;
 	uint16_t **finalbuf_16;
-
-	if(pipe(pipefd)==-1){
-		perror("pipe");
-		exit(EXIT_FAILURE);
-	}
-
-	if(pipe(pipefd2)==-1){
-		perror("pipe");
-		exit(EXIT_FAILURE);
-	}
-
-	fp=fdopen(pipefd[1], "wb");
-	if(fp==NULL){
-		perror("fdopen");
-		exit(EXIT_FAILURE);
-	}
-
-	png_ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if(!png_ptr){
-		fprintf(stderr, "error: png_create_write_struct returned zero\n");
-		exit(EXIT_FAILURE);
-	}
-
-	info_ptr=png_create_info_struct(png_ptr);
-	if(!info_ptr){
-		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-		fprintf(stderr, "error: png_create_info_struct returned zero\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if(setjmp(png_jmpbuf(png_ptr))){
-		png_destroy_write_struct(&png_ptr, &info_ptr);
-		fclose(fp);
-		fprintf(stderr, "info: libpng used setjmp\n");
-		exit(EXIT_FAILURE);
-	}
-
-	png_init_io(png_ptr, fp);
-	png_set_IHDR(png_ptr, info_ptr, width, height, png_effective_bytes_per_pixel_color*8, png_colortype, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-	png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
-	png_write_info(png_ptr, info_ptr);
 
 	fbbuf_orig=(uint8_t**)malloc(height*fb_pointer_size);
 	if(fbbuf_orig==NULL){
@@ -897,6 +853,29 @@ uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 			exit(EXIT_FAILURE);
 	}
 
+	retbuf=encode_png_core(finalbuf, imagesize);
+
+	return retbuf;
+}
+
+void encode_png_finalize()
+{
+	/* nothing to do here now */
+
+	return;
+}
+
+uint8_t *encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
+{
+	uint8_t *retbuf;
+	int pipefd[2];
+	pid_t cpid;
+
+	if(pipe(pipefd)==-1){
+		perror("pipe");
+		exit(EXIT_FAILURE);
+	}
+
 	cpid=fork();
 	if(cpid==-1){
 		perror("fork");
@@ -904,11 +883,56 @@ uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 	}
 
 	if(cpid==0){
+		FILE *fp;
+		png_structp png_ptr;
+		png_infop info_ptr;
+
+		close(pipefd[0]);
+		
+		png_ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+		if(!png_ptr){
+			fprintf(stderr, "error: png_create_write_struct returned zero\n");
+			exit(EXIT_FAILURE);
+		}
+
+		info_ptr=png_create_info_struct(png_ptr);
+		if(!info_ptr){
+			png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+			fprintf(stderr, "error: png_create_info_struct returned zero\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if(setjmp(png_jmpbuf(png_ptr))){
+			png_destroy_write_struct(&png_ptr, &info_ptr);
+			fprintf(stderr, "info: libpng used setjmp\n");
+			exit(EXIT_FAILURE);
+		}
+
+		fp=fdopen(pipefd[1], "wb");
+		if(fp==NULL){
+			perror("fdopen");
+			exit(EXIT_FAILURE);
+		}
+
+		png_init_io(png_ptr, fp);
+		png_set_IHDR(png_ptr, info_ptr, width, height, png_effective_bytes_per_pixel_color*8, png_colortype, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
+		png_write_info(png_ptr, info_ptr);
+		png_write_image(png_ptr, finalbuf);
+		png_write_end(png_ptr, info_ptr);
+		png_destroy_write_struct(&png_ptr, &info_ptr);
+
+		fclose(fp);
+
+		exit(EXIT_SUCCESS);
+	}else{
+		uint8_t *retbuf_orig;
 		struct buf_linear_list_node *lbuf_orig=NULL;
 		struct buf_linear_list_node *lbuf=NULL;
 		struct buf_linear_list_node *lbuf_prev=NULL;
 
 		close(pipefd[1]);
+
 		for(;;){
 			ssize_t rc;
 
@@ -981,60 +1005,10 @@ uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 			free(p);
 		}
 
-		if(write(pipefd2[1], imagesize, sizeof(uint32_t))==-1){
-			perror("write");
-			exit(EXIT_FAILURE);
-		}
-
-		if(write(pipefd2[1], retbuf_orig, *imagesize*sizeof(uint8_t))==-1){
-			perror("write");
-			exit(EXIT_FAILURE);
-		}
-
-		exit(EXIT_SUCCESS);
-	}else{
-		ssize_t rc;
-
-		close(pipefd[0]);
-		
-		png_write_image(png_ptr, finalbuf);
-		png_write_end(png_ptr, info_ptr);
-		png_destroy_write_struct(&png_ptr, &info_ptr);
-		fclose(fp);
-
-		rc=read(pipefd2[0], imagesize, sizeof(uint32_t));
-		if(rc==-1){
-			perror("read");
-			exit(EXIT_FAILURE);
-		}else if(rc!=sizeof(uint32_t)){
-			fprintf(stderr, "error: read returned unexpected read count\n");
-			exit(EXIT_FAILURE);
-		}
-
-		retbuf_orig=(uint8_t*)malloc(*imagesize*sizeof(uint8_t));
-		if(retbuf_orig==NULL){
-			fprintf(stderr, "error: failed to malloc retbuf_orig\n");
-			exit(EXIT_FAILURE);
-		}
-
-		rc=read(pipefd2[0], retbuf_orig, *imagesize*sizeof(uint8_t));
-		if(rc==-1){
-			perror("read");
-			exit(EXIT_FAILURE);
-		}else if(rc!=(ssize_t)(*imagesize*sizeof(uint8_t))){
-			fprintf(stderr, "error: read returned unexpected read count\n");
-			exit(EXIT_FAILURE);
-		}
+		retbuf=retbuf_orig;
 
 		wait(NULL);
 	}
 
-	return retbuf_orig;
-}
-
-void encode_png_finalize()
-{
-	/* nothing to do here now */
-
-	return;
+	return retbuf;
 }
