@@ -42,9 +42,11 @@ uint8_t fb_effective_bytes_per_pixel;
 int png_effective_bytes_per_pixel_color;
 size_t fb_pointer_size, png_pointer_size;
 uint32_t width, height;
+uint32_t localimagesize=0;
+uint8_t *retbuf=NULL;
 struct bitop_procedure bp;
 
-static uint8_t *encode_png_core(uint8_t **finalbuf, uint32_t *imagesize);
+static void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize);
 
 void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg)
 {
@@ -186,7 +188,6 @@ uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 {
 	uint32_t i, j;
 	png_bytepp finalbuf;
-	uint8_t *retbuf;
 	uint8_t **fbbuf_orig;
 	uint8_t *finalbuf_orig_1dim, **finalbuf_orig;
 	uint8_t **buf_8;
@@ -853,21 +854,20 @@ uint8_t *encode_png(void *fbbuf_1dim, uint32_t *imagesize)
 			exit(EXIT_FAILURE);
 	}
 
-	retbuf=encode_png_core(finalbuf, imagesize);
+	encode_png_core(finalbuf, imagesize);
 
 	return retbuf;
 }
 
 void encode_png_finalize()
 {
-	/* nothing to do here now */
+	free(retbuf);
 
 	return;
 }
 
-uint8_t *encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
+void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
 {
-	uint8_t *retbuf;
 	int pipefd[2];
 	pid_t cpid;
 
@@ -987,11 +987,15 @@ uint8_t *encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
 		}
 		close(pipefd[0]);
 
-		retbuf=(uint8_t*)malloc(*imagesize*sizeof(uint8_t));
-		if(retbuf==NULL){
-			fprintf(stderr, "error: failed to malloc retbuf\n");
-			exit(EXIT_FAILURE);
+		if(localimagesize!=*imagesize){
+			retbuf=(uint8_t*)malloc(*imagesize*sizeof(uint8_t));
+			if(retbuf==NULL){
+				fprintf(stderr, "error: failed to malloc retbuf\n");
+				exit(EXIT_FAILURE);
+			}
+			localimagesize=*imagesize;
 		}
+
 		retbuf_orig=retbuf;
 
 		while(lbuf_orig!=NULL){
@@ -1010,5 +1014,5 @@ uint8_t *encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
 		wait(NULL);
 	}
 
-	return retbuf;
+	return;
 }
