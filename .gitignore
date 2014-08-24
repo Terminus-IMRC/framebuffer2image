@@ -4,3 +4,4 @@ framebuffer2image
 *.png
 *.jpg
 gmon.out
+*.swp
