@@ -133,6 +133,11 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	if((sc.red.msb_right!=0)||(sc.green.msb_right!=0)||(sc.blue.msb_right!=0)||(sc.transp.length==0?0:sc.transp.msb_right!=0)){
+		fprintf(stderr, "error: sc.*.msb_right is not 0\n");
+		exit(EXIT_FAILURE);
+	}
+
 	if(sc.bits_per_pixel>64){
 		fprintf(stderr, "error: color bits per pixel is too high\n");
 		exit(EXIT_FAILURE);
