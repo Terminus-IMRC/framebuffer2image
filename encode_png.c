@@ -45,11 +45,32 @@ static uint32_t width, height;
 static uint32_t localimagesize=0;
 static uint8_t *retbuf=NULL;
 static struct bitop_procedure bp;
+static int clevel;
 
 static void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize);
 
-void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg)
+void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg, long clevel_cmd)
 {
+	switch(clevel_cmd){
+		case 0:
+			clevel=Z_NO_COMPRESSION;
+			break;
+		case 1:
+			clevel=Z_BEST_SPEED;
+			break;
+		case 2:
+			clevel=Z_BEST_COMPRESSION;
+			break;
+		case 3:
+		case -1:
+			clevel=Z_DEFAULT_COMPRESSION;
+			break;
+		default:
+			fprintf(stderr, "error: invalid clevel is specified to PNG\n");
+			exit(EXIT_FAILURE);
+			break;
+	}
+
 	width=sc.xres;
 	height=sc.yres;
 	fb_effective_bytes_per_pixel=fb_effective_bytes_per_pixel_arg;
@@ -916,7 +937,7 @@ void encode_png_core(uint8_t **finalbuf, uint32_t *imagesize)
 
 		png_init_io(png_ptr, fp);
 		png_set_IHDR(png_ptr, info_ptr, width, height, png_effective_bytes_per_pixel_color*8, png_colortype, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-		png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
+		png_set_compression_level(png_ptr, clevel);
 		png_write_info(png_ptr, info_ptr);
 		png_write_image(png_ptr, finalbuf);
 		png_write_end(png_ptr, info_ptr);

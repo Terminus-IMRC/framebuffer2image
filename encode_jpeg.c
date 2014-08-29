@@ -30,11 +30,21 @@ static uint32_t width, height;
 static struct bitop_procedure bp;
 static uint8_t *retbuf=NULL;
 static long unsigned int localimagesize;
+static int clevel;
 
 static void encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize);
 
-void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg)
+void encode_jpeg_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg, long clevel_cmd)
 {
+	if(clevel_cmd==-1)
+		clevel=75;
+	else if((clevel_cmd>=0)&&(clevel_cmd<=100))
+		clevel=clevel_cmd;
+	else{
+		fprintf(stderr, "error: invalid clevel is specified to JPEG\n");
+		exit(EXIT_FAILURE);
+	}
+
 	width=sc.xres;
 	height=sc.yres;
 	fb_effective_bytes_per_pixel=fb_effective_bytes_per_pixel_arg;
@@ -375,7 +385,7 @@ void encode_jpeg_core(uint8_t **finalbuf, uint32_t *imagesize)
 	cinfo.input_components=color_components;
 	cinfo.in_color_space=jpeg_colortype;
 	jpeg_set_defaults(&cinfo);
-	jpeg_set_quality(&cinfo, 75, !0);
+	jpeg_set_quality(&cinfo, clevel, !0);
 
 	jpeg_start_compress(&cinfo, !0);
 	jpeg_write_scanlines(&cinfo, finalbuf, height);

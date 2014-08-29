@@ -23,7 +23,7 @@
 #include <png.h>
 #include "fill_bits.h"
 
-	void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg);
+	void encode_png_init(struct fb_var_screeninfo sc, uint8_t fb_effective_bytes_per_pixel_arg, long clevel_cmd);
 	uint8_t *encode_png(void *fb_buf_1dim, uint32_t *imagesize);
 	void encode_png_finalize();
 

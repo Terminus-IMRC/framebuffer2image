@@ -36,6 +36,9 @@ int main(int argc, char *argv[])
 	enum image_type type;
 	char *type_str;
 	_Bool type_set=0;
+	long clevel=-1;
+	char *endptr;
+	_Bool clevel_set;
 	struct fb_var_screeninfo sc;
 	uint8_t fb_effective_bytes_per_pixel;
 	uint64_t size;
@@ -56,7 +59,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while((opt=getopt(argc, argv, "d:t:vh"))!=-1){
+	while((opt=getopt(argc, argv, "d:t:c:vh"))!=-1){
 		switch(opt){
 			case 'd':
 				if(dev_set){
@@ -94,6 +97,25 @@ int main(int argc, char *argv[])
 				free(type_str);
 				type_set=!0;
 				break;
+			case 'c':
+				if(clevel_set){
+					fprintf(stderr, "error: compression level option is specified more than once\n");
+					exit(EXIT_FAILURE);
+				}
+				clevel=strtol(optarg, &endptr, 10);
+				if((clevel==LONG_MIN)||(clevel==LONG_MAX)){
+					fprintf(stderr, "error: strtol returned %s\n", clevel==LONG_MIN?"LONG_MIN":"LONG_MAX");
+					perror("strtol");
+					exit(EXIT_FAILURE);
+				}else if(endptr==optarg){
+					fprintf(stderr, "error: no digits were found\n");
+					exit(EXIT_FAILURE);
+				}else if(*endptr!='\0'){
+					fprintf(stderr, "error: further characters after number: %s\n", endptr);
+					exit(EXIT_FAILURE);
+				}
+				clevel_set=!0;
+				break;
 			case 'v':
 				verbose=!0;
 				break;
@@ -120,6 +142,9 @@ int main(int argc, char *argv[])
 		usage(argv[0], stderr);
 		exit(EXIT_FAILURE);
 	}
+
+	if(verbose&&!clevel_set)
+		fprintf(stderr, "info: clevel is not specified on command line; using the default value\n");
 
 	read_fb_init(dev, &sc, &fb_effective_bytes_per_pixel, &size);
 
@@ -160,13 +185,13 @@ int main(int argc, char *argv[])
 
 	switch(type){
 		case IT_PNG:
-			encode_png_init(sc, fb_effective_bytes_per_pixel);
+			encode_png_init(sc, fb_effective_bytes_per_pixel, clevel);
 			encoded_image=encode_png(buf, &encoded_image_size);
 
 			break;
 
 		case IT_JPEG:
-			encode_jpeg_init(sc, fb_effective_bytes_per_pixel);
+			encode_jpeg_init(sc, fb_effective_bytes_per_pixel, clevel);
 			encoded_image=encode_jpeg(buf, &encoded_image_size);
 
 			break;
@@ -201,9 +226,10 @@ int main(int argc, char *argv[])
 
 void usage(char *progname, FILE *f)
 {
-	fprintf(f, "Usage: %s [-d framebuffer_device] -t [output_image_type] [-v] [-h]\n", progname);
+	fprintf(f, "Usage: %s [-d framebuffer_device] -t [output_image_type] [-c [compression_level]] [-v] [-h]\n", progname);
 	fprintf(f, "framebuffer_device is set to %s by default\n", DEFAULT_FRAMEBUFFER_DEVICE);
 	fprintf(f, "output_image_type is one of these: png, jpeg(jpg)\n");
+	fprintf(f, "compression_level range is from 0 to 3 for PNG, from 0 to 100 for JPEG and -1 for the default compression level\n");
 	fprintf(f, "-v to be verbose\n");
 	fprintf(f, "-h to print help messages\n");
 
