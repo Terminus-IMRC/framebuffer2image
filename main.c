@@ -27,7 +27,7 @@ enum image_type{
 
 void usage(char *progname, FILE *f);
 void print_sc(struct fb_var_screeninfo sc);
-void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type, const char *filename_base);
+void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type, char *filename_base, _Bool filename_base_as_is);
 
 int main(int argc, char *argv[])
 {
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 
 	free(buf);
 
-	output_image_to_file(encoded_image, encoded_image_size, type, output_filename_base);
+	output_image_to_file(encoded_image, encoded_image_size, type, output_filename_base, output_filename_base_set);
 
 	switch(type){
 		case IT_PNG:
@@ -292,40 +292,43 @@ void print_sc(struct fb_var_screeninfo sc)
 	return;
 }
 
-void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type, const char *filename_base)
+void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type, char *filename_base, _Bool filename_base_as_is)
 {
 	int fd;
 	ssize_t wc;
 	int filename_base_len;
 	char *filename;
 
-	if(filename_base!=NULL)
-		filename_base_len=strlen(filename_base);
-	else
-		filename_base_len=0;
+	if(!filename_base_as_is){
+		if(filename_base!=NULL)
+			filename_base_len=strlen(filename_base);
+		else
+			filename_base_len=0;
 
-	filename=(char*)malloc((filename_base_len+4+1)*sizeof(char));
-	if(filename==NULL){
-		fprintf(stderr, "error: failed to malloc filename\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if(filename_base!=NULL)
-		strcpy(filename, filename_base);
-
-	switch(type){
-		case IT_PNG:
-			strcat(filename, ".png");
-			break;
-
-		case IT_JPEG:
-			strcat(filename, ".jpg");
-			break;
-
-		default:
-			fprintf(stderr, "error: unknown output image type (internal error)\n");
+		filename=(char*)malloc((filename_base_len+4+1)*sizeof(char));
+		if(filename==NULL){
+			fprintf(stderr, "error: failed to malloc filename\n");
 			exit(EXIT_FAILURE);
-	}
+		}
+
+		if(filename_base!=NULL)
+			strcpy(filename, filename_base);
+
+		switch(type){
+			case IT_PNG:
+				strcat(filename, ".png");
+				break;
+
+			case IT_JPEG:
+				strcat(filename, ".jpg");
+				break;
+
+			default:
+				fprintf(stderr, "error: unknown output image type (internal error)\n");
+				exit(EXIT_FAILURE);
+		}
+	}else
+		filename=filename_base;
 
 	if((fd=open(filename, O_CREAT|O_TRUNC|O_WRONLY, S_IRUSR|S_IWUSR))==-1){
 		perror("open");
