@@ -256,9 +256,10 @@ int main(int argc, char *argv[])
 
 void usage(char *progname, FILE *f)
 {
-	fprintf(f, "Usage: %s [-d framebuffer_device] -t output_image_type [-c compression_level] [-v] [-h]\n", progname);
+	fprintf(f, "Usage: %s [-d framebuffer_device] -t output_image_type [-f output_file_name] [-c compression_level] [-v] [-h]\n", progname);
 	fprintf(f, "framebuffer_device is set to %s by default\n", DEFAULT_FRAMEBUFFER_DEVICE);
 	fprintf(f, "output_image_type is one of these: png, jpeg(jpg)\n");
+	fprintf(f, "output_file_name is set to %s.[png|jpeg] by default\n", DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX);
 	fprintf(f, "compression_level range is from 0 to 3 for PNG, from 0 to 100 for JPEG and -1 for the default compression level\n");
 	fprintf(f, "-v to be verbose\n");
 	fprintf(f, "-h to print help messages\n");
