@@ -1,4 +1,5 @@
 #define __USE_POSIX
+#define _BSD_SOURCE
 #include <limits.h>
 #include <inttypes.h>
 #include <stdint.h>
@@ -26,7 +27,7 @@ enum image_type{
 
 void usage(char *progname, FILE *f);
 void print_sc(struct fb_var_screeninfo sc);
-void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type);
+void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type, const char *filename_base);
 
 int main(int argc, char *argv[])
 {
@@ -46,6 +47,9 @@ int main(int argc, char *argv[])
 	_Bool verbose=0;
 	uint8_t *encoded_image;
 	uint32_t encoded_image_size;
+	int output_filename_base_len;
+	char *output_filename_base;
+	_Bool output_filename_base_set=0;
 
 	dev=(char*)malloc((_POSIX_PATH_MAX+1)*sizeof(char));
 	if(dev==NULL){
@@ -59,7 +63,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while((opt=getopt(argc, argv, "d:t:c:vh"))!=-1){
+	while((opt=getopt(argc, argv, "d:t:c:f:vh"))!=-1){
 		switch(opt){
 			case 'd':
 				if(dev_set){
@@ -116,6 +120,20 @@ int main(int argc, char *argv[])
 				}
 				clevel_set=!0;
 				break;
+			case 'f':
+				if(output_filename_base_set){
+					fprintf(stderr, "error: base output filename option is specified more than once\n");
+					exit(EXIT_FAILURE);
+				}
+				output_filename_base_len=strlen(optarg);
+				output_filename_base=(char*)malloc((output_filename_base_len+1)*sizeof(char));
+				if(output_filename_base==NULL){
+					fprintf(stderr, "error: failed to malloc output_filename_base\n");
+					exit(EXIT_FAILURE);
+				}
+				strcpy(output_filename_base, optarg);
+				output_filename_base_set=!0;
+				break;
 			case 'v':
 				verbose=!0;
 				break;
@@ -145,6 +163,18 @@ int main(int argc, char *argv[])
 
 	if(verbose&&!clevel_set)
 		fprintf(stderr, "info: clevel is not specified on command line; using the default value\n");
+
+	if(!output_filename_base_set){
+		if(verbose)
+			fprintf(stderr, "info: output_filename_base is not specified on command line; using the default string\n");
+		output_filename_base_len=strlen(DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX);
+		output_filename_base=(char*)malloc((output_filename_base_len+1)*sizeof(char));
+		if(output_filename_base==NULL){
+			fprintf(stderr, "error: failed to malloc output_filename_base\n");
+			exit(EXIT_FAILURE);
+		}
+		strcpy(output_filename_base, DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX);
+	}
 
 	read_fb_init(dev, &sc, &fb_effective_bytes_per_pixel, &size);
 
@@ -205,7 +235,7 @@ int main(int argc, char *argv[])
 
 	free(buf);
 
-	output_image_to_file(encoded_image, encoded_image_size, type);
+	output_image_to_file(encoded_image, encoded_image_size, type, output_filename_base);
 
 	switch(type){
 		case IT_PNG:
@@ -262,19 +292,34 @@ void print_sc(struct fb_var_screeninfo sc)
 	return;
 }
 
-void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type)
+void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, enum image_type type, const char *filename_base)
 {
 	int fd;
 	ssize_t wc;
+	int filename_base_len;
 	char *filename;
+
+	if(filename_base!=NULL)
+		filename_base_len=strlen(filename_base);
+	else
+		filename_base_len=0;
+
+	filename=(char*)malloc((filename_base_len+4+1)*sizeof(char));
+	if(filename==NULL){
+		fprintf(stderr, "error: failed to malloc filename\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if(filename_base!=NULL)
+		strcpy(filename, filename_base);
 
 	switch(type){
 		case IT_PNG:
-			filename=DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX ".png";
+			strcat(filename, ".png");
 			break;
 
 		case IT_JPEG:
-			filename=DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX ".jpg";
+			strcat(filename, ".jpg");
 			break;
 
 		default:
