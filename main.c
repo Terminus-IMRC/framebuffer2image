@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	_Bool type_set=0;
 	long clevel=-1;
 	char *endptr;
-	_Bool clevel_set;
+	_Bool clevel_set=0;
 	struct fb_var_screeninfo sc;
 	uint8_t fb_effective_bytes_per_pixel;
 	uint64_t size;
