@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	int output_filename_base_len;
 	char *output_filename_base;
 	_Bool output_filename_base_set=0;
-	struct timeval start, end;
+	struct timeval start_read, end_read, start_conv, end_conv;
 
 	dev=(char*)malloc((_POSIX_PATH_MAX+1)*sizeof(char));
 	if(dev==NULL){
@@ -211,7 +211,11 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	if(verbose)
+		gettimeofday(&start_read, NULL);
 	read_fb(buf, size);
+	if(verbose)
+		gettimeofday(&end_read, NULL);
 
 	read_fb_finalize();
 
@@ -219,20 +223,20 @@ int main(int argc, char *argv[])
 		case IT_PNG:
 			encode_png_init(sc, fb_effective_bytes_per_pixel, clevel);
 			if(verbose)
-				gettimeofday(&start, NULL);
+				gettimeofday(&start_conv, NULL);
 			encoded_image=encode_png(buf, &encoded_image_size);
 			if(verbose)
-				gettimeofday(&end, NULL);
+				gettimeofday(&end_conv, NULL);
 
 			break;
 
 		case IT_JPEG:
 			encode_jpeg_init(sc, fb_effective_bytes_per_pixel, clevel);
 			if(verbose)
-				gettimeofday(&start, NULL);
+				gettimeofday(&start_conv, NULL);
 			encoded_image=encode_jpeg(buf, &encoded_image_size);
 			if(verbose)
-				gettimeofday(&end, NULL);
+				gettimeofday(&end_conv, NULL);
 
 			break;
 
@@ -245,8 +249,10 @@ int main(int argc, char *argv[])
 
 	free(buf);
 
-	if(verbose)
-		printf("Time: %f sec\n", (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) * 1e-6);
+	if(verbose){
+		printf("Time (read): %f sec\n", (end_read.tv_sec - start_read.tv_sec) + (end_read.tv_usec - start_read.tv_usec) * 1e-6);
+		printf("Time (conv): %f sec\n", (end_conv.tv_sec - start_conv.tv_sec) + (end_conv.tv_usec - start_conv.tv_usec) * 1e-6);
+	}
 
 	output_image_to_file(encoded_image, encoded_image_size, type, output_filename_base, output_filename_base_set);
 
