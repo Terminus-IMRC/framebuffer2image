@@ -14,6 +14,7 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include "read_fb.h"
 #include "encode_png.h"
 #include "encode_jpeg.h"
@@ -50,6 +51,7 @@ int main(int argc, char *argv[])
 	int output_filename_base_len;
 	char *output_filename_base;
 	_Bool output_filename_base_set=0;
+	struct timeval start, end;
 
 	dev=(char*)malloc((_POSIX_PATH_MAX+1)*sizeof(char));
 	if(dev==NULL){
@@ -216,13 +218,21 @@ int main(int argc, char *argv[])
 	switch(type){
 		case IT_PNG:
 			encode_png_init(sc, fb_effective_bytes_per_pixel, clevel);
+			if(verbose)
+				gettimeofday(&start, NULL);
 			encoded_image=encode_png(buf, &encoded_image_size);
+			if(verbose)
+				gettimeofday(&end, NULL);
 
 			break;
 
 		case IT_JPEG:
 			encode_jpeg_init(sc, fb_effective_bytes_per_pixel, clevel);
+			if(verbose)
+				gettimeofday(&start, NULL);
 			encoded_image=encode_jpeg(buf, &encoded_image_size);
+			if(verbose)
+				gettimeofday(&end, NULL);
 
 			break;
 
@@ -234,6 +244,9 @@ int main(int argc, char *argv[])
 	free(dev);
 
 	free(buf);
+
+	if(verbose)
+		printf("Time: %f sec\n", (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) * 1e-6);
 
 	output_image_to_file(encoded_image, encoded_image_size, type, output_filename_base, output_filename_base_set);
 
