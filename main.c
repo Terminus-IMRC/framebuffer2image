@@ -331,7 +331,7 @@ void output_image_to_file(uint8_t *encoded_image, uint32_t encoded_image_size, e
 	}else
 		filename=filename_base;
 
-	if((fd=open(filename, O_CREAT|O_TRUNC|O_WRONLY, S_IRUSR|S_IWUSR))==-1){
+	if((fd=open(filename, O_CREAT|O_TRUNC|O_WRONLY, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))==-1){
 		perror("open");
 		exit(EXIT_FAILURE);
 	}
