@@ -157,10 +157,9 @@ int main(int argc, char *argv[])
 		dev_set=!0;
 	}
 
-	if(!type_set){
-		fprintf(stderr, "error: specify output image type\n");
-		usage(argv[0], stderr);
-		exit(EXIT_FAILURE);
+	if(verbose&&!type_set){
+		fprintf(stderr, "info: type is not specified on command line; using the default value\n");
+		type=IT_PNG;
 	}
 
 	if(verbose&&!clevel_set)
