@@ -274,13 +274,15 @@ int main(int argc, char *argv[])
 
 void usage(char *progname, FILE *f)
 {
-	fprintf(f, "Usage: %s [-d framebuffer_device] -t output_image_type [-f output_file_name] [-c compression_level] [-v] [-h]\n", progname);
-	fprintf(f, "framebuffer_device is set to %s by default\n", DEFAULT_FRAMEBUFFER_DEVICE);
-	fprintf(f, "output_image_type is one of these: png, jpeg(jpg)\n");
-	fprintf(f, "output_file_name is set to %s.[png|jpeg] by default\n", DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX);
-	fprintf(f, "compression_level range is from 0 to 3 for PNG, from 0 to 100 for JPEG and -1 for the default compression level\n");
-	fprintf(f, "-v to be verbose\n");
-	fprintf(f, "-h to print help messages\n");
+	fprintf(f, "Usage: %s [OPTION]...\n", progname);
+	fprintf(f, "  -d DEV      input frame buffer device (default: %s)\n", DEFAULT_FRAMEBUFFER_DEVICE);
+	fprintf(f, "  -t TYPE     output image type (png or jpeg (jpg)) (default: png)\n");
+	fprintf(f, "  -f FILE     output image to FILE (default: %s.[png|jpg])\n", DEFAULT_OUTPUT_IMAGE_FILENAME_PREFIX);
+	fprintf(f, "  -c LEVEL    compression level\n" \
+	           "              0-3 for PNG and 0-100 for JPEG\n" \
+	           "              specify -1 to use the default compression level\n");
+	fprintf(f, "  -v          be verbose\n");
+	fprintf(f, "  -h          show this help and exit\n");
 
 	return;
 }
